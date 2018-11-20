@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -7,7 +9,10 @@ from django.views.decorators.http import require_POST
 import simplejson
 import string
 import time
-import xmlrpclib
+try:
+    from xmlrpclib import Server
+except ImportError:
+    from xmlrpc.client import Server
 
 import cobbler.item_distro as item_distro
 import cobbler.item_file as item_file
@@ -19,7 +24,7 @@ import cobbler.item_repo as item_repo
 import cobbler.item_system as item_system
 import cobbler.settings as item_settings
 import cobbler.utils as utils
-import field_ui_info
+from . import field_ui_info
 
 url_cobbler_api = None
 remote = None
@@ -161,7 +166,7 @@ def get_fields(what, is_subobject, seed_item=None):
         # template logic
         ui_field["value_raw"] = ui_field["value"]
 
-        if isinstance(ui_field["value"], basestring) and ui_field["value"].startswith("SETTINGS:"):
+        if isinstance(ui_field["value"], str) and ui_field["value"].startswith("SETTINGS:"):
             key = ui_field["value"].replace("SETTINGS:", "", 1)
             ui_field["value"] = settings[key]
 
@@ -180,7 +185,7 @@ def get_fields(what, is_subobject, seed_item=None):
             else:
                 tokens = []
                 for (x, y) in ui_field["value"].items():
-                    if isinstance(y, basestring) and y.strip() != "~":
+                    if isinstance(y, str) and y.strip() != "~":
                         y = y.replace(" ", "\\ ")
                         tokens.append("%s=%s" % (x, y))
                     elif isinstance(y, list):
@@ -557,7 +562,7 @@ def generic_delete(request, what, obj_name=None):
         recursive = simplejson.loads(request.POST.get("recursive", "false"))
         try:
             remote.xapi_object_edit(what, obj_name, "remove", {'name': obj_name, 'recursive': recursive}, request.session['token'])
-        except Exception, e:
+        except Exception as e:
             return error_page(request, str(e))
         return HttpResponseRedirect("/cobbler_web/%s/list" % what)
 
@@ -585,7 +590,7 @@ def generic_domulti(request, what, multi_mode=None, multi_arg=None):
         for obj_name in names:
             try:
                 remote.xapi_object_edit(what, obj_name, "remove", {'name': obj_name, 'recursive': recursive}, request.session['token'])
-            except Exception, e:
+            except Exception as e:
                 return error_page(request, str(e))
 
     elif what == "system" and multi_mode == "netboot":
@@ -888,7 +893,7 @@ def setting_list(request):
     if not test_user_authenticated(request):
         return login(request, next="/cobbler_web/setting/list", expired=True)
     settings = remote.get_settings()
-    skeys = settings.keys()
+    skeys = list(settings.keys())
     skeys.sort()
 
     results = []
@@ -1210,7 +1215,7 @@ def generic_edit(request, what=None, obj_name=None, editmode="new"):
         sections_data = field_ui_info.SYSTEM_UI_FIELDS_MAPPING
     sections = _create_sections_metadata(what, sections_data, fields)
 
-    inames = interfaces.keys()
+    inames = list(interfaces.keys())
     inames.sort()
 
     html = render(request, 'generic_edit.tmpl', {
@@ -1319,7 +1324,7 @@ def generic_save(request, what):
                 if value is not None and (not subobject or field['name'] != 'distro') and value != prev_value:
                     try:
                         remote.modify_item(what, obj_id, field['name'], value, request.session['token'])
-                    except Exception, e:
+                    except Exception as e:
                         return error_page(request, str(e))
 
     # special handling for system interface fields
@@ -1342,12 +1347,12 @@ def generic_save(request, what):
                     remote.modify_system(obj_id, 'delete_interface', interface, request.session['token'])
                 elif present == "1":
                     remote.modify_system(obj_id, 'modify_interface', ifdata, request.session['token'])
-            except Exception, e:
+            except Exception as e:
                 return error_page(request, str(e))
 
     try:
         remote.save_item(what, obj_id, request.session['token'], editmode)
-    except Exception, e:
+    except Exception as e:
         return error_page(request, str(e))
 
     return HttpResponseRedirect('/cobbler_web/%s/list' % what)
@@ -1364,7 +1369,7 @@ def test_user_authenticated(request):
     if url_cobbler_api is None:
         url_cobbler_api = utils.local_get_cobbler_api_url()
 
-    remote = xmlrpclib.Server(url_cobbler_api, allow_none=True)
+    remote = Server(url_cobbler_api, allow_none=True)
 
     # if we have a token, get the associated username from
     # the remote server via XMLRPC. We then compare that to
@@ -1430,7 +1435,7 @@ def do_login(request):
     if url_cobbler_api is None:
         url_cobbler_api = utils.local_get_cobbler_api_url()
 
-    remote = xmlrpclib.Server(url_cobbler_api, allow_none=True)
+    remote = Server(url_cobbler_api, allow_none=True)
 
     try:
         token = remote.login(username, password)

@@ -1,6 +1,6 @@
 from django.conf.urls import url
 
-import views
+from . import views
 
 # Uncomment the next two lines to enable the admin:
 # from cobbler_web.contrib import admin

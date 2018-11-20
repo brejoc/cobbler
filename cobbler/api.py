@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 """
 Copyright 2006-2009, Red Hat, Inc and Others
 Michael DeHaan <michael.dehaan AT gmail>
@@ -18,7 +20,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-from ConfigParser import ConfigParser
+from __future__ import unicode_literals
+
+from configparser import ConfigParser
 import os
 import random
 import tempfile
@@ -184,7 +188,7 @@ class CobblerAPI:
         API instance, regardless of the serializer type.
         """
         if not os.path.exists("/var/lib/cobbler/.mtime"):
-            fd = os.open("/var/lib/cobbler/.mtime", os.O_CREAT | os.O_RDWR, 0200)
+            fd = os.open("/var/lib/cobbler/.mtime", os.O_CREAT | os.O_RDWR, 0o200)
             os.write(fd, "0")
             os.close(fd)
             return 0
@@ -343,8 +347,8 @@ class CobblerAPI:
     # ==========================================================================
 
     def remove_item(self, what, ref, recursive=False, delete=True, with_triggers=True, logger=None):
-        if isinstance(what, basestring):
-            if isinstance(ref, basestring):
+        if isinstance(what, str):
+            if isinstance(ref, str):
                 ref = self.get_item(what, ref)
                 if ref is None:
                     return      # nothing to remove
@@ -625,7 +629,7 @@ class CobblerAPI:
             # FIXME: probably doesn't work for yum-rhn-plugin ATM
             cobbler_repo.set_mirror(url)
             cobbler_repo.set_name(auto_name)
-            print "auto adding: %s (%s)" % (auto_name, url)
+            print("auto adding: %s (%s)" % (auto_name, url))
             self._collection_mgr.repos().add(cobbler_repo, save=True)
 
         # run cobbler reposync to apply changes

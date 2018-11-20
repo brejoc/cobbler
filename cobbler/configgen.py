@@ -27,11 +27,11 @@ from Cheetah.Template import Template
 import simplejson as json
 import string
 
-from cexceptions import CX
-import clogger
+from .cexceptions import CX
+from . import clogger
 import cobbler.api as capi
 import cobbler.utils
-import utils
+from . import utils
 
 
 class ConfigGen:

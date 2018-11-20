@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import six
 import time
 
 import cobbler.templar as templar
@@ -92,7 +93,7 @@ class DnsmasqManager:
 
             profile = system.get_conceptual_parent()
             distro = profile.get_conceptual_parent()
-            for (name, interface) in system.interfaces.iteritems():
+            for (name, interface) in six.iteritems(system.interfaces):
 
                 mac = interface["mac_address"]
                 ip = interface["ip_address"]
@@ -158,7 +159,7 @@ class DnsmasqManager:
         for system in self.systems:
             if not system.is_management_supported(cidr_ok=False):
                 continue
-            for (name, interface) in system.interfaces.iteritems():
+            for (name, interface) in six.iteritems(system.interfaces):
                 mac = interface["mac_address"]
                 ip = interface["ip_address"]
                 if mac is None or mac == "":
@@ -175,7 +176,7 @@ class DnsmasqManager:
         for system in self.systems:
             if not system.is_management_supported(cidr_ok=False):
                 continue
-            for (name, interface) in system.interfaces.iteritems():
+            for (name, interface) in six.iteritems(system.interfaces):
                 mac = interface["mac_address"]
                 host = interface["dns_name"]
                 ip = interface["ip_address"]

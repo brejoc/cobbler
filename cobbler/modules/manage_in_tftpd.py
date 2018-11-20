@@ -177,7 +177,7 @@ class InTftpdManager:
             try:
                 self.logger.info("copying files for distro: %s" % d.name)
                 self.tftpgen.copy_single_distro_files(d, self.bootloc, False)
-            except CX, e:
+            except CX as e:
                 self.logger.error(e.value)
 
         self.logger.info("copying images")

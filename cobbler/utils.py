@@ -20,6 +20,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from __future__ import unicode_literals
+
+import six
 import copy
 import errno
 import glob
@@ -35,13 +38,19 @@ import subprocess
 import string
 import sys
 import traceback
-import urllib2
 import yaml
+try:
+    from urllib2 import urlopen
+    from urllib2 import HTTPError
+except ImportError:
+    from urllib.request import urlopen
+    from urllib.error import HTTPError
 
-from cexceptions import FileNotFoundException, CX
+from .cexceptions import FileNotFoundException, CX
 from cobbler import clogger
 from cobbler import field_info
 from cobbler import validate
+from functools import reduce
 
 
 def md5(key):
@@ -275,7 +284,7 @@ def get_random_mac(api_handle, virt_type="xenpv"):
     else:
         raise CX("virt mac assignment not yet supported")
 
-    mac = ':'.join(map(lambda x: "%02x" % x, mac))
+    mac = ':'.join(["%02x" % x for x in mac])
     systems = api_handle.systems()
     while (systems.find(mac_address=mac)):
         mac = get_random_mac(api_handle)
@@ -437,11 +446,11 @@ def read_file_contents(file_location, logger=None, fetch_if_remote=False):
 
     if file_is_remote(file_location):
         try:
-            handler = urllib2.urlopen(file_location)
+            handler = urlopen(file_location)
             data = handler.read()
             handler.close()
             return data
-        except urllib2.HTTPError:
+        except HTTPError:
             # File likely doesn't exist
             if logger:
                 logger.warning("File does not exist: %s" % file_location)
@@ -451,10 +460,10 @@ def read_file_contents(file_location, logger=None, fetch_if_remote=False):
 def remote_file_exists(file_url):
     """ Return True if the remote file exists. """
     try:
-        handler = urllib2.urlopen(file_url)
+        handler = urlopen(file_url)
         handler.close()
         return True
-    except urllib2.HTTPError:
+    except HTTPError:
         # File likely doesn't exist
         return False
 
@@ -465,7 +474,7 @@ def file_is_remote(file_location):
     we support.
     """
     file_loc_lc = file_location.lower()
-    # Check for urllib2 supported protocols
+    # Check for urllib supported protocols
     for prefix in ["http://", "https://", "ftp://"]:
         if file_loc_lc.startswith(prefix):
             return True
@@ -482,7 +491,7 @@ def input_string_or_list(options):
         return []
     elif isinstance(options, list):
         return options
-    elif isinstance(options, basestring):
+    elif isinstance(options, str):
         tokens = shlex.split(options)
         return tokens
     else:
@@ -503,7 +512,7 @@ def input_string_or_dict(options, allow_multiples=True):
         return (True, {})
     elif isinstance(options, list):
         raise CX(_("No idea what to do with list: %s") % options)
-    elif isinstance(options, basestring):
+    elif isinstance(options, str):
         new_dict = {}
         tokens = shlex.split(options)
         for t in tokens:
@@ -590,8 +599,8 @@ def blender(api_handle, remove_dicts, root_obj):
     # EXAMPLE:  $ip == $ip0, $ip1, $ip2 and so on.
 
     if root_obj.COLLECTION_TYPE == "system":
-        for (name, interface) in root_obj.interfaces.iteritems():
-            for key in interface.keys():
+        for (name, interface) in six.iteritems(root_obj.interfaces):
+            for key in list(interface.keys()):
                 results["%s_%s" % (key, name)] = interface[key]
 
     # if the root object is a profile or system, add in all
@@ -755,7 +764,7 @@ def __consolidate(node, results):
 def dict_removals(results, subkey):
     if subkey not in results:
         return
-    scan = results[subkey].keys()
+    scan = list(results[subkey].keys())
     for k in scan:
         if str(k).startswith("!") and k != "!":
             remove_me = k[1:]
@@ -1167,11 +1176,11 @@ def copyremotefile(src, dst1, api=None, logger=None):
     try:
         if logger is not None:
             logger.info("copying: %s -> %s" % (src, dst1))
-        srcfile = urllib2.urlopen(src)
+        srcfile = urlopen(src)
         output = open(dst1, 'wb')
         output.write(srcfile.read())
         output.close()
-    except Exception, e:
+    except Exception as e:
         raise CX(_("Error while getting remote file (%s -> %s):\n%s" % (src, dst1, e.message)))
 
 
@@ -1190,7 +1199,7 @@ def rmfile(path, logger=None):
             logger.info("removing: %s" % path)
         os.unlink(path)
         return True
-    except OSError, ioe:
+    except OSError as ioe:
         if not ioe.errno == errno.ENOENT:   # doesn't exist
             if logger is not None:
                 log_exc(logger)
@@ -1212,7 +1221,7 @@ def rmtree(path, logger=None):
             if logger is not None:
                 logger.info("removing: %s" % path)
             return shutil.rmtree(path, ignore_errors=True)
-    except OSError, ioe:
+    except OSError as ioe:
         if logger is not None:
             log_exc(logger)
         if not ioe.errno == errno.ENOENT:   # doesn't exist
@@ -1220,12 +1229,12 @@ def rmtree(path, logger=None):
         return True
 
 
-def mkdir(path, mode=0755, logger=None):
+def mkdir(path, mode=0o755, logger=None):
     try:
         if logger is not None:
             logger.info("mkdir: %s" % path)
         return os.makedirs(path, mode)
-    except OSError, oe:
+    except OSError as oe:
         if not oe.errno == 17:  # already exists (no constant for 17?)
             if logger is not None:
                 log_exc(logger)
@@ -1346,7 +1355,7 @@ def set_virt_file_size(self, num):
         self.virt_file_size = "<<inherit>>"
         return
 
-    if isinstance(num, basestring) and num.find(",") != -1:
+    if isinstance(num, str) and num.find(",") != -1:
         tokens = num.split(",")
         for t in tokens:
             # hack to run validation on each
@@ -1532,7 +1541,7 @@ class MntEntObj(object):
     mnt_passno = 0      # pass number on parallel fsck
 
     def __init__(self, input=None):
-        if input and isinstance(input, basestring):
+        if input and isinstance(input, str):
             (self.mnt_fsname, self.mnt_dir, self.mnt_type, self.mnt_opts,
              self.mnt_freq, self.mnt_passno) = input.split()
 
@@ -1726,7 +1735,7 @@ def clear_from_fields(item, fields, is_subobject=False):
             val = elems[2]
         else:
             val = elems[1]
-        if isinstance(val, basestring):
+        if isinstance(val, str):
             if val.startswith("SETTINGS:"):
                 setkey = val.split(":")[-1]
                 val = getattr(item.settings, setkey)
@@ -1818,7 +1827,7 @@ def to_string_from_fields(item_dict, fields, interface_fields=None):
         for elem in interface_fields:
             keys.append((elem[0], elem[3], elem[4]))
         keys.sort()
-        for iname in item_dict["interfaces"].keys():
+        for iname in list(item_dict["interfaces"].keys()):
             # FIXME: inames possibly not sorted
             buf += "%-30s : %s\n" % ("Interface ===== ", iname)
             for (k, nicename, editable) in keys:
@@ -1862,7 +1871,7 @@ def get_valid_breeds():
     Return a list of valid breeds found in the import signatures
     """
     if "breeds" in SIGNATURE_CACHE:
-        return SIGNATURE_CACHE["breeds"].keys()
+        return list(SIGNATURE_CACHE["breeds"].keys())
     else:
         return []
 
@@ -1873,7 +1882,7 @@ def get_valid_os_versions_for_breed(breed):
     """
     os_versions = []
     if breed in get_valid_breeds():
-        os_versions = SIGNATURE_CACHE["breeds"][breed].keys()
+        os_versions = list(SIGNATURE_CACHE["breeds"][breed].keys())
     return os_versions
 
 
@@ -1884,7 +1893,7 @@ def get_valid_os_versions():
     os_versions = []
     try:
         for breed in get_valid_breeds():
-            os_versions += SIGNATURE_CACHE["breeds"][breed].keys()
+            os_versions += list(SIGNATURE_CACHE["breeds"][breed].keys())
     except:
         pass
     return uniquify(os_versions)
@@ -2110,7 +2119,7 @@ def link_distro(settings, distro):
             os.symlink(base, dest_link)
         except:
             # this shouldn't happen but I've seen it ... debug ...
-            print _("- symlink creation failed: %(base)s, %(dest)s") % {"base": base, "dest": dest_link}
+            print(_("- symlink creation failed: %(base)s, %(dest)s") % {"base": base, "dest": dest_link})
 
 
 def find_distro_path(settings, distro):
@@ -2129,4 +2138,4 @@ def compare_versions_gt(ver1, ver2):
     return versiontuple(ver1) > versiontuple(ver2)
 
 if __name__ == "__main__":
-    print os_release()  # returns 2, not 3
+    print(os_release())  # returns 2, not 3

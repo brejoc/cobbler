@@ -92,7 +92,7 @@ class Mgmtclass(item.Item):
         self.is_definition = utils.input_boolean(isdef)
 
     def set_class_name(self, name):
-        if not isinstance(name, basestring):
+        if not isinstance(name, str):
             raise CX(_("class name must be a string"))
         for x in name:
             if not x.isalnum() and x not in ["_", "-", ".", ":", "+"]:

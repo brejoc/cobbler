@@ -25,12 +25,12 @@ import glob
 import os
 import time
 
-from cexceptions import CX
-import clogger
-import templar
-import tftpgen
-import utils
-from utils import _
+from .cexceptions import CX
+from . import clogger
+from . import templar
+from . import tftpgen
+from . import utils
+from .utils import _
 
 
 class CobblerSync:
@@ -107,8 +107,8 @@ class CobblerSync:
                 self.logger.info("copying files for distro: %s" % d.name)
                 self.tftpgen.copy_single_distro_files(d, self.settings.webdir, True)
                 self.tftpgen.write_templates(d, write_file=True)
-            except CX, e:
-                self.logger.error(e.value)
+            except CX as e:
+                self.logger.error(e)
 
         # make the default pxe menu anyway...
         self.tftpgen.make_pxe_menu()

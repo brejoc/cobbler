@@ -37,10 +37,10 @@ except:
     """ FIXME: log a message here """
     pass
 
-from cexceptions import CX
-import clogger
-from template_api import Template
-import utils
+from .cexceptions import CX
+from . import clogger
+from .template_api import Template
+from . import utils
 
 major, minor, release = Cheetah.Version.split('.')[0:3]
 fix_cheetah_class = int(major) >= 2 and int(minor) >= 4 and int(release) >= 2
@@ -88,7 +88,7 @@ class Templar:
         subject is a profile or system object, if available (for snippet eval)
         """
 
-        if not isinstance(data_input, basestring):
+        if not isinstance(data_input, str):
             raw_data = data_input.read()
         else:
             raw_data = data_input
@@ -207,7 +207,7 @@ class Templar:
             if self.last_errors:
                 self.logger.warning("errors were encountered rendering the template")
                 self.logger.warning("\n" + pprint.pformat(self.last_errors))
-        except Exception, e:
+        except Exception as e:
             self.logger.error(utils.cheetah_exc(e))
             raise CX("Error templating file, check cobbler.log for more details")
 

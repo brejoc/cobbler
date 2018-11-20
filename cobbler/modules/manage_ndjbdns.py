@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-
+import six
 import os
 import subprocess
 
@@ -66,7 +66,7 @@ class NDjbDnsManager:
             template_content = f.read()
 
         for system in self.systems:
-            for (name, interface) in system.interfaces.iteritems():
+            for (name, interface) in six.iteritems(system.interfaces):
                 host = interface['dns_name']
                 ip = interface['ip_address']
 

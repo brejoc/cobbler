@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import six
 import os
 import os.path
 import re
@@ -28,9 +29,9 @@ import shutil
 import socket
 import string
 
-from cexceptions import CX
-import templar
-import utils
+from .cexceptions import CX
+from . import templar
+from . import utils
 
 
 class TFTPGen:
@@ -142,7 +143,7 @@ class TFTPGen:
         for i in self.images:
             try:
                 self.copy_single_image_files(i)
-            except CX, e:
+            except CX as e:
                 errors.append(e)
                 self.logger.error(e.value)
 
@@ -230,7 +231,7 @@ class TFTPGen:
         pxe_metadata = {'pxe_menu_items': menu_items}
 
         # generate one record for each described NIC ..
-        for (name, interface) in system.interfaces.iteritems():
+        for (name, interface) in six.iteritems(system.interfaces):
 
             f1 = utils.get_config_filename(system, interface=name)
             if f1 is None:
@@ -541,7 +542,7 @@ class TFTPGen:
                     # local booting on ppc requires removing the system-specific dhcpd.conf filename
                     if arch is not None and arch.startswith("ppc"):
                         # Disable yaboot network booting for all interfaces on the system
-                        for (name, interface) in system.interfaces.iteritems():
+                        for (name, interface) in six.iteritems(system.interfaces):
 
                             filename = "%s" % utils.get_config_filename(system, interface=name).lower()
 
@@ -736,7 +737,7 @@ class TFTPGen:
 
                 # rework kernel options for debian distros
                 translations = {'ksdevice': "interface", 'lang': "locale"}
-                for k, v in translations.iteritems():
+                for k, v in six.iteritems(translations):
                     append_line = append_line.replace("%s=" % k, "%s=" % v)
 
                 # interface=bootif causes a failure

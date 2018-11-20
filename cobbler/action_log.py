@@ -24,7 +24,7 @@ import glob
 import os
 import os.path
 
-import clogger
+from . import clogger
 
 
 class LogTool:
@@ -50,13 +50,13 @@ class LogTool:
         """
         anamon_dir = '/var/log/cobbler/anamon/%s' % self.system.name
         if os.path.isdir(anamon_dir):
-            logs = filter(os.path.isfile, glob.glob('%s/*' % anamon_dir))
+            logs = list(filter(os.path.isfile, glob.glob('%s/*' % anamon_dir)))
         for log in logs:
             try:
                 f = open(log, 'w')
                 f.truncate()
                 f.close()
-            except IOError, e:
+            except IOError as e:
                 self.logger.info("Failed to Truncate '%s':%s " % (log, e))
-            except OSError, e:
+            except OSError as e:
                 self.logger.info("Failed to Truncate '%s':%s " % (log, e))

@@ -21,7 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import urlparse
+try:
+    from urlparse import urlsplit
+except ImportError:
+    from  urllib.parse import urlsplit
 import xml.dom.minidom
 
 from cobbler import templar
@@ -283,7 +286,7 @@ class AutoInstallationGen:
         # add install_source_directory metavariable to autoinstall metavariables
         # if distro is based on Debian
         if distro.breed in ["debian", "ubuntu"] and "tree" in meta:
-            urlparts = urlparse.urlsplit(meta["tree"])
+            urlparts = urlsplit(meta["tree"])
             meta["install_source_directory"] = urlparts[2]
 
         try:

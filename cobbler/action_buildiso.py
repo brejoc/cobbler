@@ -26,8 +26,8 @@ import os.path
 import re
 import shutil
 
-import clogger
-import utils
+from . import clogger
+from . import utils
 
 
 class BuildIso:
@@ -62,7 +62,7 @@ class BuildIso:
         Add remaining kernel_options to append_line
         """
         append_line = ""
-        for (k, v) in koptdict.iteritems():
+        for (k, v) in koptdict.items():
             if v is None:
                 append_line += " %s" % k
             else:
@@ -323,8 +323,8 @@ class BuildIso:
                 mgmt_ints = []
                 mgmt_ints_multi = []
                 slave_ints = []
-                if len(data["interfaces"].keys()) >= 1:
-                    for (iname, idata) in data["interfaces"].iteritems():
+                if len(list(data["interfaces"].keys())) >= 1:
+                    for (iname, idata) in data["interfaces"].items():
                         if idata["management"] and idata["interface_type"] in ["bond", "bridge"]:
                             # bonded/bridged management interface
                             mgmt_ints_multi.append(iname)
@@ -335,7 +335,7 @@ class BuildIso:
                 if len(mgmt_ints_multi) == 1 and len(mgmt_ints) == 0:
                     # bonded/bridged management interface, find a slave interface
                     # if eth0 is a slave use that (it's what people expect)
-                    for (iname, idata) in data["interfaces"].iteritems():
+                    for (iname, idata) in data["interfaces"].items():
                         if idata["interface_type"] in ["bond_slave", "bridge_slave", "bonded_bridge_slave"] and idata["interface_master"] == mgmt_ints_multi[0]:
                             slave_ints.append(iname)
 

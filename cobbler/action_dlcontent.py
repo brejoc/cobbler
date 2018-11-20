@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import os
 import urlgrabber
 
-import clogger
+from . import clogger
 
 
 class ContentDownloader:

@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import glob
 import time
 
-import clogger
+from . import clogger
 
 # ARRAY INDEXES
 MOST_RECENT_START = 0
@@ -120,7 +120,7 @@ class CobblerStatusReport:
     def get_printable_results(self):
         format = "%-15s|%-20s|%-17s|%-17s"
         ip_data = self.ip_data
-        ips = ip_data.keys()
+        ips = list(ip_data.keys())
         ips.sort()
         line = (
             "ip",

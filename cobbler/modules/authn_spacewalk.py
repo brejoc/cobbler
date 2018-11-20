@@ -21,7 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import xmlrpclib
+try:
+    from xmlrpclib import Server
+except ImportError:
+    from xmlrpc.client import Server
 
 
 def register():
@@ -76,7 +79,7 @@ def authenticate(api_handle, username, password):
 
     spacewalk_url = "https://%s/rpc/api" % server
 
-    client = xmlrpclib.Server(spacewalk_url, verbose=0)
+    client = Server(spacewalk_url, verbose=0)
 
     if __looks_like_a_token(password) or username == 'taskomatic_user':
 
@@ -147,4 +150,4 @@ def authenticate(api_handle, username, password):
 
 
 if __name__ == "__main__":
-    print authenticate(None, "admin", "redhat")
+    print(authenticate(None, "admin", "redhat"))

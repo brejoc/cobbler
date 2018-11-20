@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
-import ConfigParser
+import configparser
 
 pymongo_loaded = False
 try:
@@ -36,7 +36,7 @@ import yaml
 
 from cobbler.cexceptions import CX
 
-cp = ConfigParser.ConfigParser()
+cp = configparser.ConfigParser()
 cp.read("/etc/cobbler/mongodb.conf")
 
 host = cp.get("connection", "host")

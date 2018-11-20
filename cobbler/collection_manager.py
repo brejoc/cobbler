@@ -25,17 +25,17 @@ import random
 import time
 import weakref
 
-from cexceptions import CX
-import collection_distros as distros
-import collection_files as files
-import collection_images as images
-import collection_mgmtclasses as mgmtclasses
-import collection_packages as packages
-import collection_profiles as profiles
-import collection_repos as repos
-import collection_systems as systems
-import settings
-import serializer
+from .cexceptions import CX
+from . import collection_distros as distros
+from . import collection_files as files
+from . import collection_images as images
+from . import collection_mgmtclasses as mgmtclasses
+from . import collection_packages as packages
+from . import collection_profiles as profiles
+from . import collection_repos as repos
+from . import collection_systems as systems
+from . import settings
+from . import serializer
 
 
 class CollectionManager:
