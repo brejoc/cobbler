@@ -14,6 +14,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 import exceptions
 import fnmatch
 import pprint
+import six
 
 from cobbler import utils
 from cobbler import validate
@@ -149,7 +150,7 @@ class Item(object):
 
     def __find_compare(self, from_search, from_obj):
 
-        if isinstance(from_obj, basestring):
+        if isinstance(from_obj, str):
             # FIXME: fnmatch is only used for string to string comparisions
             # which should cover most major usage, if not, this deserves fixing
             from_obj_lower = from_obj.lower()
@@ -161,7 +162,7 @@ class Item(object):
                 match = fnmatch.fnmatch(from_obj_lower, from_search_lower)
             return match
         else:
-            if isinstance(from_search, basestring):
+            if isinstance(from_search, str):
                 if isinstance(from_obj, list):
                     from_search = utils.input_string_or_list(from_search)
                     for x in from_search:
@@ -235,7 +236,7 @@ class Item(object):
         """
         Get direct children of this object.
         """
-        keys = self.children.keys()
+        keys = list(self.children.keys())
         if sorted:
             keys.sort()
         results = []
@@ -399,7 +400,7 @@ class Item(object):
     def find_match(self, kwargs, no_errors=False):
         # used by find() method in collection.py
         data = self.to_dict()
-        for (key, value) in kwargs.iteritems():
+        for (key, value) in six.iteritems(kwargs):
             # Allow ~ to negate the compare
             if value is not None and value.startswith("~"):
                 res = not self.find_match_single_key(data, key, value[1:], no_errors)
@@ -419,7 +420,7 @@ class Item(object):
                        "interface_master", "bonding_opts", "bridge_opts",
                        "interface"]:
                 key_found_already = True
-                for (name, interface) in data["interfaces"].iteritems():
+                for (name, interface) in data["interfaces"].items():
                     if value == name:
                         return True
                     if value is not None and key in interface:

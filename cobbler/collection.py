@@ -19,13 +19,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import exceptions
-import utils
+from . import utils
 import time
 import os
 from threading import Lock
 
 from cobbler import action_litesync
-import item as item_base
+from . import item as item_base
 from cobbler import item_system
 from cobbler import item_profile
 from cobbler import item_distro
@@ -65,7 +65,7 @@ class Collection:
         """
         Returns size of the collection.
         """
-        return len(self.listing.values())
+        return len(list(self.listing.values()))
 
     def factory_produce(self, collection_mgr, seed_data):
         """
@@ -119,7 +119,7 @@ class Collection:
 
         self.lock.acquire()
         try:
-            for (name, obj) in self.listing.iteritems():
+            for (name, obj) in self.listing.items():
                 if obj.find_match(kargs, no_errors=no_errors):
                     matches.append(obj)
         finally:
@@ -371,7 +371,7 @@ class Collection:
                 elif isinstance(ref, item_file.File):
                     pass
                 else:
-                    print _("Internal error. Object type not recognized: %s") % type(ref)
+                    print(_("Internal error. Object type not recognized: %s") % type(ref))
             if not with_sync and quick_pxe_update:
                 if isinstance(ref, item_system.System):
                     self.lite_sync.update_system_netboot_status(ref.name)
@@ -422,7 +422,7 @@ class Collection:
             return
 
         if isinstance(ref, item_system.System):
-            for (name, intf) in ref.interfaces.iteritems():
+            for (name, intf) in ref.interfaces.items():
                 match_ip = []
                 match_mac = []
                 match_hosts = []
@@ -455,8 +455,8 @@ class Collection:
         would be better off reading the JSON in the collections files
         directly.
         """
-        values = self.listing.values()[:]   # copy the values
-        values.sort()                       # sort the copy (2.3 fix)
+        values = list(self.listing.values())[:]   # copy the values
+        values.sort()                             # sort the copy (2.3 fix)
         results = []
         for i, v in enumerate(values):
             results.append(v.to_string())

@@ -22,9 +22,9 @@ import glob
 import os
 import re
 
-import clogger
-import utils
-from utils import _
+from . import clogger
+from . import utils
+from .utils import _
 
 
 class CobblerCheck:
@@ -291,7 +291,7 @@ class CobblerCheck:
 
         # look for bootloaders at the glob locations above
         found_bootloaders = []
-        items = bootloaders.keys()
+        items = list(bootloaders.keys())
         for loader_name in items:
             patterns = bootloaders[loader_name]
             for pattern in patterns:

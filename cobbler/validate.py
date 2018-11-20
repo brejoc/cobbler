@@ -17,6 +17,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from __future__ import unicode_literals
+
 import netaddr
 import re
 import shlex
@@ -44,7 +46,7 @@ def object_name(name, parent):
     @param: str parent (parent object name)
     @returns: str name or CX
     """
-    if not isinstance(name, basestring) or not isinstance(parent, basestring):
+    if not isinstance(name, str) or not isinstance(parent, str):
         raise CX("Invalid input, name and parent must be strings")
     else:
         name = name.strip()
@@ -66,7 +68,7 @@ def hostname(dnsname):
     @param: str dnsname (hostname or fqdn)
     @returns: str dnsname or CX
     """
-    if not isinstance(dnsname, basestring):
+    if not isinstance(dnsname, str):
         raise CX("Invalid input, dnsname must be a string")
     else:
         dnsname = dnsname.strip()
@@ -88,7 +90,7 @@ def mac_address(mac, for_item=True):
     @param: str mac (mac address)
     @returns: str mac or CX
     """
-    if not isinstance(mac, basestring):
+    if not isinstance(mac, str):
         raise CX("Invalid input, mac must be a string")
     else:
         mac = mac.lower().strip()
@@ -111,7 +113,7 @@ def ipv4_address(addr):
     @param: str addr (ipv4 address)
     @returns: str addr or CX
     """
-    if not isinstance(addr, basestring):
+    if not isinstance(addr, str):
         raise CX("Invalid input, addr must be a string")
     else:
         addr = addr.strip()
@@ -135,7 +137,7 @@ def ipv4_netmask(addr):
     @param: str addr (ipv4 netmask)
     @returns: str addr or CX
     """
-    if not isinstance(addr, basestring):
+    if not isinstance(addr, str):
         raise CX("Invalid input, addr must be a string")
     else:
         addr = addr.strip()
@@ -159,7 +161,7 @@ def ipv6_address(addr):
     @param: str addr (ipv6 address)
     @returns: str addr or CX
     """
-    if not isinstance(addr, basestring):
+    if not isinstance(addr, str):
         raise CX("Invalid input, addr must be a string")
     else:
         addr = addr.strip()
@@ -180,7 +182,7 @@ def name_servers(nameservers, for_item=True):
     @param: str/list nameservers (string or list of nameserver addresses)
     @param: bool for_item (enable/disable special handling for Item objects)
     """
-    if isinstance(nameservers, basestring):
+    if isinstance(nameservers, str):
         nameservers = nameservers.strip()
         if for_item is True:
             # special handling for Items
@@ -213,7 +215,7 @@ def name_servers_search(search, for_item=True):
     @param: str/list search (string or list of search domains)
     @param: bool for_item (enable/disable special handling for Item objects)
     """
-    if isinstance(search, basestring):
+    if isinstance(search, str):
         search = search.strip()
         if for_item is True:
             # special handling for Items

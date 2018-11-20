@@ -18,6 +18,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import six
+
 from cobbler import autoinstall_manager
 from cobbler import item
 from cobbler import power_manager
@@ -266,7 +268,7 @@ class System(item.Item):
         """
         if self.name == "default":
             return True
-        for (name, x) in self.interfaces.iteritems():
+        for (name, x) in six.iteritems(self.interfaces):
             mac = x.get("mac_address", None)
             ip = x.get("ip_address", None)
             if ip is not None and not cidr_ok and ip.find("/") != -1:
@@ -660,7 +662,7 @@ class System(item.Item):
         Used by the WUI to modify an interface more-efficiently
         """
 
-        for (key, value) in _dict.iteritems():
+        for (key, value) in six.iteritems(_dict):
             (field, interface) = key.split("-", 1)
             field = field.replace("_", "").replace("-", "")
 

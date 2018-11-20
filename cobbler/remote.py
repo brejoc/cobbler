@@ -18,13 +18,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import six
 import base64
 import errno
 import fcntl
 import os
 import random
-import SimpleXMLRPCServer
-from SocketServer import ThreadingMixIn
+try:
+    import SimpleXMLRPCServer
+except ImportError:
+    from xmlrpc.server import SimpleXMLRPCServer
+try:
+    from SocketServer import ThreadingMixIn
+except ImportError:
+    from socketserver import ThreadingMixIn
 import stat
 import string
 from threading import Thread
@@ -280,7 +287,7 @@ class CobblerXMLRPCInterface:
         """
         # return only the events the user has not seen
         self.events_filtered = {}
-        for (k, x) in self.events.iteritems():
+        for (k, x) in six.iteritems(self.events):
             if for_user in x[3]:
                 pass
             else:
@@ -288,7 +295,7 @@ class CobblerXMLRPCInterface:
 
         # mark as read so user will not get events again
         if for_user is not None and for_user != "":
-            for (k, x) in self.events.iteritems():
+            for (k, x) in six.iteritems(self.events):
                 if for_user in x[3]:
                     pass
                 else:
@@ -496,7 +503,7 @@ class CobblerXMLRPCInterface:
             'page': page,
             'prev_page': prev_page,
             'next_page': next_page,
-            'pages': range(1, num_pages + 1),
+            'pages': list(range(1, num_pages + 1)),
             'num_pages': num_pages,
             'num_items': num_items,
             'start_item': start_item,
@@ -981,7 +988,7 @@ class CobblerXMLRPCInterface:
             # modify when done, rather than now.
             imods = {}
             # FIXME: needs to know about how to delete interfaces too!
-            for (k, v) in attributes.iteritems():
+            for (k, v) in six.iteritems(attributes):
                 if object_type != "system" or not self.__is_interface_field(k):
                     # in place modifications allow for adding a key/value pair while keeping other k/v
                     # pairs intact.
@@ -990,7 +997,7 @@ class CobblerXMLRPCInterface:
                         details = self.get_item(object_type, object_name)
                         v2 = details[k]
                         (ok, input) = utils.input_string_or_dict(v)
-                        for (a, b) in input.iteritems():
+                        for (a, b) in six.iteritems(input):
                             if a.startswith("~") and len(a) > 1:
                                 del v2[a[1:]]
                             else:
@@ -1237,7 +1244,7 @@ class CobblerXMLRPCInterface:
         profile = info.get("profile", "")
         hostname = info.get("hostname", "")
         interfaces = info.get("interfaces", {})
-        ilen = len(interfaces.keys())
+        ilen = len(list(interfaces.keys()))
 
         if name == "":
             raise CX("no system name submitted")
@@ -1250,7 +1257,7 @@ class CobblerXMLRPCInterface:
 
         # validate things first
         name = info.get("name", "")
-        inames = interfaces.keys()
+        inames = list(interfaces.keys())
         if self.api.find_system(name=name):
             raise CX("system name conflicts")
         if hostname != "" and self.api.find_system(hostname=hostname):
@@ -1379,12 +1386,12 @@ class CobblerXMLRPCInterface:
         # FIXME ... get the base dir from cobbler settings()
         udir = "/var/log/cobbler/anamon/%s" % sys_name
         if not os.path.isdir(udir):
-            os.mkdir(udir, 0755)
+            os.mkdir(udir, 0o755)
 
         fn = "%s/%s" % (udir, fn)
         try:
             st = os.lstat(fn)
-        except OSError, e:
+        except OSError as e:
             if e.errno == errno.ENOENT:
                 pass
             else:
@@ -1393,7 +1400,7 @@ class CobblerXMLRPCInterface:
             if not stat.S_ISREG(st.st_mode):
                 raise CX("destination not a file: %s" % fn)
 
-        fd = os.open(fn, os.O_RDWR | os.O_CREAT, 0644)
+        fd = os.open(fn, os.O_RDWR | os.O_CREAT, 0o644)
         # log_error("fd=%r" %fd)
         try:
             if offset == 0 or (offset == -1 and size == len(contents)):
@@ -2039,10 +2046,10 @@ class CobblerXMLRPCInterface:
 # *********************************************************************************
 
 
-class CobblerXMLRPCServer(ThreadingMixIn, SimpleXMLRPCServer.SimpleXMLRPCServer):
+class CobblerXMLRPCServer(ThreadingMixIn, SimpleXMLRPCServer):
     def __init__(self, args):
         self.allow_reuse_address = True
-        SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self, args)
+        SimpleXMLRPCServer.__init__(self, args)
 
 # *********************************************************************************
 
@@ -2066,7 +2073,7 @@ class ProxiedXMLRPCInterface:
         # FIXME: see if this works without extra boilerplate
         try:
             return method_handle(*params)
-        except Exception, e:
+        except Exception as e:
             utils.log_exc(self.logger)
             raise e
 

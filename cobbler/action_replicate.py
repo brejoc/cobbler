@@ -23,10 +23,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import fnmatch
 import os
-import xmlrpclib
+try:
+    from xmlrpclib import Server
+except ImportError:
+    from xmlrpc.client import Server
 
-import clogger
-import utils
+from . import clogger
+from . import utils
 
 OBJ_TYPES = ["distro", "profile", "system", "repo", "image", "mgmtclass", "package", "file"]
 
@@ -63,7 +66,7 @@ class Replicate:
         locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
         remotes = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
-        for (luid, ldata) in locals.iteritems():
+        for (luid, ldata) in locals.items():
             if luid not in remotes:
                 try:
                     self.logger.info("removing %s %s" % (obj_type, ldata["name"]))
@@ -100,7 +103,7 @@ class Replicate:
         locals = utils.lod_to_dod(self.local_data[obj_type], "uid")
         remotes = utils.lod_to_dod(self.remote_data[obj_type], "uid")
 
-        for (ruid, rdata) in remotes.iteritems():
+        for (ruid, rdata) in remotes.items():
             # do not add the system if it is not on the transfer list
             if not rdata["name"] in self.must_include[obj_type]:
                 continue
@@ -216,7 +219,7 @@ class Replicate:
         }
 
         for ot in OBJ_TYPES:
-            self.remote_names[ot] = utils.lod_to_dod(self.remote_data[ot], "name").keys()
+            self.remote_names[ot] = list(utils.lod_to_dod(self.remote_data[ot], "name").keys())
             self.remote_dict[ot] = utils.lod_to_dod(self.remote_data[ot], "name")
             if self.sync_all:
                 for names in self.remote_dict[ot]:
@@ -293,7 +296,7 @@ class Replicate:
 
         # FIXME: remove debug
         for ot in OBJ_TYPES:
-            self.logger.debug("transfer list for %s is %s" % (ot, self.must_include[ot].keys()))
+            self.logger.debug("transfer list for %s is %s" % (ot, list(self.must_include[ot].keys())))
 
     # -------------------------------------------------------
 
@@ -347,10 +350,10 @@ class Replicate:
 
         self.logger.info("XMLRPC endpoint: %s" % self.uri)
         self.logger.debug("test ALPHA")
-        self.remote = xmlrpclib.Server(self.uri)
+        self.remote = Server(self.uri)
         self.logger.debug("test BETA")
         self.remote.ping()
-        self.local = xmlrpclib.Server("http://127.0.0.1:%s/cobbler_api" % self.settings.http_port)
+        self.local = Server("http://127.0.0.1:%s/cobbler_api" % self.settings.http_port)
         self.local.ping()
 
         self.replicate_data()

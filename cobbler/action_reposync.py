@@ -32,8 +32,8 @@ try:
 except:
     HAS_YUM = False
 
-import clogger
-import utils
+from . import clogger
+from . import utils
 
 
 class RepoSync:
@@ -632,7 +632,7 @@ class RepoSync:
 
             if config_proxy is not None:
                 config_file.write("proxy=%s\n" % config_proxy)
-            if 'exclude' in repo.yumopts.keys():
+            if 'exclude' in list(repo.yumopts.keys()):
                 self.logger.debug("excluding: %s" % repo.yumopts['exclude'])
                 config_file.write("exclude=%s\n" % repo.yumopts['exclude'])
 

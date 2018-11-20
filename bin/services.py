@@ -22,8 +22,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 # Only add standard python modules here. When running under a virtualenv other modules are not
 # available at this point.
+from __future__ import unicode_literals
 import os
-import urllib
+try:
+    from urllib import unquote
+except ImportError:
+    from urllib.parse import unquote
 import cgi
 
 
@@ -40,7 +44,7 @@ def application(environ, start_response):
     import yaml
     from cobbler.services import CobblerSvc
 
-    my_uri = urllib.unquote(environ['REQUEST_URI'])
+    my_uri = unquote(environ['REQUEST_URI'])
 
     form = {}
 
@@ -98,7 +102,7 @@ def application(environ, start_response):
     func = getattr(cw, mode)
     content = func(**form)
 
-    content = unicode(content).encode('utf-8')
+    content = str(content).encode('utf-8')
     status = '200 OK'
 
     if content.find("# *** ERROR ***") != -1:
@@ -109,7 +113,7 @@ def application(environ, start_response):
     elif content.find("# profile not found") != -1 or \
             content.find("# system not found") != -1 or \
             content.find("# object not found") != -1:
-        print("content not found: %s" % my_uri)
+        print(("content not found: %s" % my_uri))
         status = "404 NOT FOUND"
 
     # req.content_type = "text/plain;charset=utf-8"

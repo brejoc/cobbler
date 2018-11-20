@@ -17,8 +17,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 import re
 
-import clogger
-import utils
+from . import clogger
+from . import utils
 
 
 class Report:
@@ -49,16 +49,16 @@ class Report:
         for field in fields_list:
             internal = self.array_re.search(field)
             # check if field is primary field
-            if field in structure.keys():
+            if field in list(structure.keys()):
                 item[field] = structure[field]
             # check if subfield in 'interfaces' field
-            elif internal and internal.group(1) in structure.keys():
+            elif internal and internal.group(1) in list(structure.keys()):
                 outer = internal.group(1)
                 inner = internal.group(2)
                 if isinstance(structure[outer], dict) and inner in structure[outer]:
 
                     item[field] = structure[outer][inner]
-            elif "interfaces" in structure.keys():
+            elif "interfaces" in list(structure.keys()):
                 for device in structure['interfaces'].keys():
                     if field in structure['interfaces'][device]:
                         item[field] = device + ': ' + structure['interfaces'][device][field]
@@ -81,7 +81,7 @@ class Report:
                 if info_count == 0:
                     outputheaders += str(key) + sep
 
-                if key in item.keys():
+                if key in list(item.keys()):
                     outputbody += str(item[key]) + sep
                 else:
                     outputbody += '-' + sep
@@ -115,7 +115,7 @@ class Report:
                 if info_count == 0:
                     outputheaders += sep + str(key)
 
-                if key in item.keys():
+                if key in list(item.keys()):
                     outputbody += sep + str(item[key])
                 else:
                     outputbody += sep + '-'
@@ -150,7 +150,7 @@ class Report:
                 if info_count == 0:
                     outputheaders += sep1 + key
 
-                if key in item.keys():
+                if key in list(item.keys()):
                     outputbody += sep2 + item[key]
                 else:
                     outputbody += sep2 + '-'
@@ -191,12 +191,12 @@ class Report:
                     outputheaders += sep1 + key
 
                 if item_count == 0:
-                    if key in item.keys():
+                    if key in list(item.keys()):
                         outputbody += sep2 + str(item[key])
                     else:
                         outputbody += sep2 + '-'
                 else:
-                    if key in item.keys():
+                    if key in list(item.keys()):
                         outputbody += sep1 + str(item[key])
                     else:
                         outputbody += sep1 + '-'
@@ -273,11 +273,11 @@ class Report:
             else:
                 structure = x.to_list()
 
-            for (key, value) in structure.iteritems():
+            for (key, value) in structure.items():
                 # exception for systems which could have > 1 interface
                 if key == "interfaces":
-                    for (device, info) in value.iteritems():
-                        for (info_header, info_value) in info.iteritems():
+                    for (device, info) in value.items():
+                        for (info_header, info_value) in info.items():
                             item[info_header] = str(device) + ': ' + str(info_value)
                             # needs to create order list for print_formatted_fields
                             if count == 0:

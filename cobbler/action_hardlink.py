@@ -21,9 +21,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 """
 
 import os
-import utils
+from . import utils
 
-import clogger
+from . import clogger
 
 
 class HardLinker:

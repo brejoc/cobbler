@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+import six
 import re
 import time
 
@@ -119,7 +120,7 @@ class BindManager:
             zones[zone] = {}
 
         for system in self.systems:
-            for (name, interface) in system.interfaces.iteritems():
+            for (name, interface) in six.iteritems(system.interfaces):
                 host = interface["dns_name"]
                 ip = interface["ip_address"]
                 ipv6 = interface["ipv6_address"]
@@ -139,7 +140,7 @@ class BindManager:
                 # - b.c.d.e
                 # then a.b.c.d.e should go in b.c.d.e
                 best_match = ''
-                for zone in zones.keys():
+                for zone in list(zones.keys()):
                     if re.search('\.%s$' % zone, host) and len(zone) > len(best_match):
                         best_match = zone
 
@@ -210,7 +211,7 @@ class BindManager:
             zones[zone] = {}
 
         for system in self.systems:
-            for (name, interface) in system.interfaces.iteritems():
+            for (name, interface) in six.iteritems(system.interfaces):
                 host = interface["dns_name"]
                 ip = interface["ip_address"]
                 ipv6 = interface["ipv6_address"]
@@ -272,7 +273,7 @@ class BindManager:
         # forward_zones = self.settings.manage_forward_zones
         # reverse_zones = self.settings.manage_reverse_zones
 
-        metadata = {'forward_zones': self.__forward_zones().keys(),
+        metadata = {'forward_zones': list(self.__forward_zones().keys()),
                     'reverse_zones': [],
                     'zone_include': ''}
 
@@ -330,7 +331,7 @@ zone "%(arpa)s." {
         # forward_zones = self.settings.manage_forward_zones
         # reverse_zones = self.settings.manage_reverse_zones
 
-        metadata = {'forward_zones': self.__forward_zones().keys(),
+        metadata = {'forward_zones': list(self.__forward_zones().keys()),
                     'reverse_zones': [],
                     'zone_include': ''}
 
@@ -404,11 +405,11 @@ zone "%(arpa)s." {
                 octets.append([int(i) for i in each_ip.split('.')])
         quartets.sort()
         # integers back to four character hex strings
-        quartets = map(lambda x: [format(i, '04x') for i in x], quartets)
+        quartets = [[format(i, '04x') for i in x] for x in quartets]
         #
         octets.sort()
         # integers back to strings
-        octets = map(lambda x: [str(i) for i in x], octets)
+        octets = [[str(i) for i in x] for x in octets]
         #
         return ['.'.join(i) for i in octets] + [':'.join(i) for i in quartets]
 
@@ -421,11 +422,11 @@ zone "%(arpa)s." {
         # particular system
 
         for system in self.systems:
-            for (name, interface) in system.interfaces.iteritems():
+            for (name, interface) in six.iteritems(system.interfaces):
                 if interface["dns_name"] == "":
                     self.logger.info(("Warning: dns_name unspecified in the system: %s, while writing host records") % system.name)
 
-        names = [k for k, v in hosts.iteritems()]
+        names = [k for k, v in six.iteritems(hosts)]
         if not names:
             return ''       # zones with no hosts
 
@@ -442,7 +443,7 @@ zone "%(arpa)s." {
             my_name = "%s%s" % (name, spacing)
             my_host_record = hosts[name]
             my_host_list = []
-            if isinstance(my_host_record, basestring):
+            if isinstance(my_host_record, str):
                 my_host_list = [my_host_record]
             else:
                 my_host_list = my_host_record
@@ -466,7 +467,7 @@ zone "%(arpa)s." {
         # Which results in empty records without any warning to the users
 
         for system in self.systems:
-            for (name, interface) in system.interfaces.iteritems():
+            for (name, interface) in six.iteritems(system.interfaces):
                 cnames = interface.get("cnames", [])
 
                 try:
@@ -522,7 +523,7 @@ zone "%(arpa)s." {
 
         zonefileprefix = self.settings.bind_chroot_path + self.zonefile_base
 
-        for (zone, hosts) in forward.iteritems():
+        for (zone, hosts) in six.iteritems(forward):
             metadata = {
                 'cobbler_server': cobbler_server,
                 'serial': serial,
@@ -565,7 +566,7 @@ zone "%(arpa)s." {
                 self.logger.info("generating (forward) %s" % zonefilename)
             self.templar.render(template_data, metadata, zonefilename, None)
 
-        for (zone, hosts) in reverse.iteritems():
+        for (zone, hosts) in six.iteritems(reverse):
             metadata = {
                 'cobbler_server': cobbler_server,
                 'serial': serial,

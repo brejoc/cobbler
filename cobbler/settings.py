@@ -24,8 +24,8 @@ import glob
 import os.path
 import re
 
-import utils
-from utils import _
+from . import utils
+from .utils import _
 
 TESTMODE = False
 
@@ -213,7 +213,7 @@ class Settings:
         Modify this object to load values in dictionary.
         """
         if _dict is None:
-            print _("warning: not loading empty structure for %s") % self.filename()
+            print(_("warning: not loading empty structure for %s") % self.filename())
             return
 
         self._clear()

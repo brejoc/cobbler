@@ -388,7 +388,7 @@ class ImportSignatureManager:
         if result.pop("x86", False):
             result["i386"] = 1
 
-        return result.keys()
+        return list(result.keys())
 
     def arch_walker(self, foo, dirname, fnames):
         """

@@ -21,12 +21,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301  USA
 """
 
+from __future__ import unicode_literals
+
 import simplejson
 import time
 import urlgrabber
-import xmlrpclib
+try:
+    from xmlrpclib import Server
+except ImportError:
+    from xmlrpc.client import Server
 import yaml
-import collection_manager
+from . import collection_manager
 
 
 class CobblerSvc(object):
@@ -47,7 +52,7 @@ class CobblerSvc(object):
         This is the version that does not require logins.
         """
         if self.remote is None:
-            self.remote = xmlrpclib.Server(self.server, allow_none=True)
+            self.remote = Server(self.server, allow_none=True)
 
     def index(self, **args):
         return "no mode specified"
@@ -64,7 +69,7 @@ class CobblerSvc(object):
         """
         self.__xmlrpc_setup()
         data = self.remote.generate_autoinstall(profile, system, REMOTE_ADDR, REMOTE_MAC)
-        return u"%s" % data
+        return "%s" % data
 
     def gpxe(self, profile=None, system=None, mac=None, **rest):
         """
@@ -80,7 +85,7 @@ class CobblerSvc(object):
                 system = found[0]
 
         data = self.remote.generate_gpxe(profile, system)
-        return u"%s" % data
+        return "%s" % data
 
     def bootcfg(self, profile=None, system=None, **rest):
         """
@@ -89,7 +94,7 @@ class CobblerSvc(object):
         """
         self.__xmlrpc_setup()
         data = self.remote.generate_bootcfg(profile, system)
-        return u"%s" % data
+        return "%s" % data
 
     def script(self, profile=None, system=None, **rest):
         """
@@ -99,7 +104,7 @@ class CobblerSvc(object):
         """
         self.__xmlrpc_setup()
         data = self.remote.generate_script(profile, system, rest['query_string']['script'][0])
-        return u"%s" % data
+        return "%s" % data
 
     def events(self, user="", **rest):
         self.__xmlrpc_setup()
@@ -109,7 +114,7 @@ class CobblerSvc(object):
             data = self.remote.get_events(user)
 
         # sort it... it looks like { timestamp : [ array of details ] }
-        keylist = data.keys()
+        keylist = list(data.keys())
         keylist.sort()
         results = []
         for k in keylist:
@@ -292,6 +297,6 @@ class CobblerSvc(object):
                 del classes[ckey]
                 classes[class_name] = tmp
         else:
-            classes = classes.keys()
+            classes = list(classes.keys())
 
         return yaml.dump(data, default_flow_style=False)

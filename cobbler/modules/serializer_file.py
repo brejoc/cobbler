@@ -164,7 +164,7 @@ def filter_upgrade_duplicates(file_list):
             lookup = bases.get(basekey, "")
             if not lookup.endswith(".json"):
                 bases[basekey] = f
-    return bases.values()
+    return list(bases.values())
 
 
 def deserialize(collection, topological=True):
