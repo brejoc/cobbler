@@ -26,6 +26,7 @@ from future import standard_library
 standard_library.install_aliases()
 import xmlrpc.client
 
+from cobbler import clogger
 
 def register():
     """
@@ -67,9 +68,12 @@ def authenticate(api_handle, username, password):
 
     """
 
+    login_logger = clogger.Logger("/var/log/cobbler/login.log")
+
     if api_handle is not None:
         server = api_handle.settings().redhat_management_server
         user_enabled = api_handle.settings().redhat_management_permissive
+        login_logger.debug("api_handle: {} - server: {} - user_enable: {}".format(api_handle, server, user_enabled))
     else:
         server = "columbia.devel.redhat.com"
         user_enabled = True
@@ -78,10 +82,14 @@ def authenticate(api_handle, username, password):
         return False        # emergency fail, don't bother RHN!
 
     spacewalk_url = "https://%s/rpc/api" % server
+    login_logger.debug("spacewalk_url: {}".format(spacewalk_url))
 
     client = xmlrpc.client.Server(spacewalk_url, verbose=0)
 
     if __looks_like_a_token(password) or username == 'taskomatic_user':
+        login_logger.debug("password looks like a token or username is 'taskomatic_user'")
+        login_logger.debug("token? -> {}".format(__looks_like_a_token(password)))
+        login_logger.debug("username: {}".format(username))
 
         # The tokens
         # are lowercase hex, but a password can also be lowercase hex,
@@ -90,16 +98,20 @@ def authenticate(api_handle, username, password):
         # any login failed stuff in the logs that we don't need to send.
 
         try:
+            login_logger.debug("Calling Spacewalk (checkAuthToken)...")
             valid = client.auth.checkAuthToken(username, password)
+            login_logger.debug("result of checkAuthToken: {}".format(valid))
         except:
             # if the token is not a token this will raise an exception
             # rather than return an integer.
             valid = 0
+            login_logger.debug("got an exception for checkAuthToken!!!")
 
         # problem at this point, 0xdeadbeef is valid as a token but if that
         # fails, it's also a valid password, so we must try auth system #2
 
         if valid != 1:
+            login_logger.debug("checkAuthToken was not valid: {}".format(valid))
             # first API code returns 1 on success
             # the second uses exceptions for login failed.
             #
@@ -108,44 +120,60 @@ def authenticate(api_handle, username, password):
 
             if user_enabled == 0:
                 # this feature must be explicitly enabled.
+                login_logger.debug("returning False, since user_enabled == 0")
                 return False
 
             session = ""
             try:
+                login_logger.debug("trying to get session from spacewalk (login)...")
                 session = client.auth.login(username, password)
+                login_logger.debug("session: {}".format(session))
             except:
                 # FIXME: should log exceptions that are not excepted
                 # as we could detect spacewalk java errors here that
                 # are not login related.
+                login_logger.debug("got exception for login, returning False")
                 return False
 
             # login success by username, role must also match
             roles = client.user.listRoles(session, username)
+            login_logger.debug("login successful, checking roles: {}".format(roles))
             if not ("config_admin" in roles or "org_admin" in roles):
+                login_logger.debug("returning false, user doesn't have role config_admin or org_admin")
                 return False
 
+        login_logger.debug("returning True!!!!")
         return True
 
     else:
 
         # it's an older version of spacewalk, so just try the username/pass
         # OR: we know for sure it's not a token because it's not lowercase hex.
+        login_logger.debug("it's an older version of spacewalk, so just try the username/pass")
+
 
         if user_enabled == 0:
             # this feature must be explicitly enabled.
+            login_logger.debug("returning False, user_enabled == 0")
             return False
 
         session = ""
         try:
+            login_logger.debug("trying to get session from spacewalk (login)...")
             session = client.auth.login(username, password)
+            login_logger.debug("session: {}".format(session))
         except:
+            login_logger.debug("got exception for login, returning False")
             return False
 
         # login success by username, role must also match
         roles = client.user.listRoles(session, username)
+        login_logger.debug("login successful, checking roles: {}".format(roles))
         if not ("config_admin" in roles or "org_admin" in roles):
+            login_logger.debug("returning false, user doesn't have role config_admin or org_admin")
             return False
 
+        login_logger.debug("returning True!!!!")
         return True
 
 
