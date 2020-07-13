@@ -101,11 +101,11 @@ def authenticate(api_handle, username, password):
             login_logger.debug("Calling Spacewalk (checkAuthToken)...")
             valid = client.auth.checkAuthToken(username, password)
             login_logger.debug("result of checkAuthToken: {}".format(valid))
-        except:
+        except Exception as e:
             # if the token is not a token this will raise an exception
             # rather than return an integer.
             valid = 0
-            login_logger.debug("got an exception for checkAuthToken!!!")
+            login_logger.debug("got an exception {} for token {}".format(e.with_trace(), password))
 
         # problem at this point, 0xdeadbeef is valid as a token but if that
         # fails, it's also a valid password, so we must try auth system #2
